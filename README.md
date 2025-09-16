@@ -2,6 +2,10 @@
 
 A lightweight Kanban-style task board with desktop drag-and-drop, mobile-friendly actions, theming, and local persistence.
 
+## Live demo
+
+https://kolyadisney.github.io/recman-test-project/
+
 ## Features
 - Drag & drop **columns** and **tasks** (desktop)
 - Mobile long-press action sheet for moving tasks/columns
