@@ -7,6 +7,7 @@ import { defineConfig } from 'vite';
 const rootDir = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  base: '/recman-test-project/',
   plugins: [
     react({
       jsxImportSource: '@emotion/react',
