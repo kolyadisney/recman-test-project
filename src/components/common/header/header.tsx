@@ -51,7 +51,6 @@ export const Header: React.FC<HeaderProps> = ({ isDark, onToggleTheme }) => {
         <Input
           variant="bordered"
           placeholder="Search tasks…"
-          defaultValue={searchQuery}
           value={searchQuery}
           fullWidth
           css={{

@@ -3,7 +3,7 @@ import {
   dropTargetForElements,
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { PencilIcon } from '@heroicons/react/16/solid';
-import { CheckIcon, TrashIcon, EllipsisVerticalIcon } from '@heroicons/react/24/solid';
+import { CheckIcon, EllipsisVerticalIcon, TrashIcon } from '@heroicons/react/24/solid';
 import React from 'react';
 
 import { Button, Checkbox } from '@/components';
@@ -11,7 +11,6 @@ import { getTaskActions } from '@/components/board/components/task/task-action.t
 import { MobileActionSheet } from '@/components/common/mobile-action-sheet/mobile-actoin-sheet.tsx';
 import { EModalsMaps } from '@/components/common/modal/config';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { useLongPress } from '@/hooks/useLongPress';
 import { useBoardStore } from '@/store/useBoardStore';
 import { useModalStore } from '@/store/useModalStore';
 import { highlightSearchTerm } from '@/utils/search';
@@ -31,7 +30,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({ taskIdentifier, index }) => 
   const [isActionSheetOpen, setIsActionSheetOpen] = React.useState(false);
   const openSheet = React.useCallback(() => setIsActionSheetOpen(true), []);
   const closeSheet = React.useCallback(() => setIsActionSheetOpen(false), []);
-  const longPressHandlers = useLongPress(openSheet, { delayMs: 450 });
 
   const board = useBoardStore((s) => s.board);
   const task = useBoardStore((s) => s.board.tasks[taskIdentifier]);
@@ -92,7 +90,7 @@ export const TaskItem: React.FC<TaskItemProps> = ({ taskIdentifier, index }) => 
       cleanupDrag();
       cleanupDrop();
     };
-  }, [task?.id, task?.columnId, index, reorderTasks, moveTask]);
+  }, [task.id, task.columnId, index, reorderTasks, moveTask, task]);
 
   const handleEditTask = React.useCallback(() => {
     if (!task) return;
@@ -131,7 +129,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({ taskIdentifier, index }) => 
   return (
     <TaskContainerStyled
       ref={elementRef}
-      {...longPressHandlers}
       $dragging={isDragging}
       $completed={task.isCompleted}
       $isOverTarget={isOverTarget}
@@ -166,11 +163,24 @@ export const TaskItem: React.FC<TaskItemProps> = ({ taskIdentifier, index }) => 
           )}
         </Button>
 
-        <Button type="button" isIconOnly variant="solid" color="primary" onClick={handleEditTask}>
+        <Button
+          type="button"
+          isIconOnly
+          variant="solid"
+          color="primary"
+          onClick={handleEditTask}
+          disabled={task.isCompleted}
+        >
           <PencilIcon width={14} height={14} />
         </Button>
 
-        <Button type="button" isIconOnly color="danger" onClick={handleDeleteTask}>
+        <Button
+          type="button"
+          isIconOnly
+          color="danger"
+          onClick={handleDeleteTask}
+          disabled={task.isCompleted}
+        >
           <TrashIcon width={14} height={14} />
         </Button>
       </TaskActionsContainer>

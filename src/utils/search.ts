@@ -18,17 +18,6 @@ const getWordStarts = (text: string): number[] => {
   return starts;
 };
 
-export const isPrefixMatch = (text: string, query: string): boolean => {
-  const q = (query ?? '').trim();
-  if (!q) return true;
-  const lc = text.toLowerCase();
-  const qlc = q.toLowerCase();
-  for (const start of getWordStarts(text)) {
-    if (lc.startsWith(qlc, start)) return true;
-  }
-  return false;
-};
-
 export const highlightSearchTerm = (source: string, query: string): string => {
   const q = (query ?? '').trim();
   if (!q) return escapeHtml(source);

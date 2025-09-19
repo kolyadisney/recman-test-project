@@ -10,7 +10,6 @@ import { Button, Checkbox } from '@/components';
 import { TaskItem } from '@/components/board/components';
 import { MobileActionSheet } from '@/components/common/mobile-action-sheet/mobile-actoin-sheet.tsx';
 import { EModalsMaps } from '@/components/common/modal/config';
-import { useLongPress } from '@/hooks/useLongPress';
 import { useBoardStore } from '@/store/useBoardStore';
 import { useModalStore } from '@/store/useModalStore';
 
@@ -37,14 +36,13 @@ export const Column: React.FC<ColumnProps> = ({ columnId, index }) => {
   const [isActionSheetOpen, setIsActionSheetOpen] = React.useState(false);
   const openSheet = React.useCallback(() => setIsActionSheetOpen(true), []);
   const closeSheet = React.useCallback(() => setIsActionSheetOpen(false), []);
-  const longPressHandlers = useLongPress(openSheet, { delayMs: 450 });
 
   const board = useBoardStore((store) => store.board);
   const columnFromStore = useBoardStore((store) => store.board.columns[columnId]);
+  const tasksByIdentifierFromStore = useBoardStore((store) => store.board.tasks);
   const columnTaskIdentifiersFromStore = useBoardStore(
     (store) => store.board.columns[columnId]?.taskIdentifiers ?? [],
   );
-  const tasksByIdentifierFromStore = useBoardStore((store) => store.board.tasks);
   const currentFilter = useBoardStore((store) => store.filter);
   const currentSearchQuery = useBoardStore((store) => store.searchQuery);
   const selectedTaskIdentifiersSet = useBoardStore((store) => store.selectedTaskIdentifiers);
@@ -56,6 +54,7 @@ export const Column: React.FC<ColumnProps> = ({ columnId, index }) => {
   const bulkDelete = useBoardStore((store) => store.bulkDelete);
   const moveTask = useBoardStore((store) => store.moveTask);
   const reorderTasks = useBoardStore((store) => store.reorderTasks);
+  const getFilteredTasks = useBoardStore((store) => store.getFilteredTasks);
 
   const { openModal } = useModalStore();
 
@@ -91,26 +90,34 @@ export const Column: React.FC<ColumnProps> = ({ columnId, index }) => {
 
   const hasAnySelectedTasksInColumn = selectedTaskIdentifiersInColumn.length > 0;
 
-  const filteredTasksForColumn = React.useMemo(() => {
-    const list = columnTaskIdentifiersFromStore
-      .map((id) => tasksByIdentifierFromStore[id])
-      .filter(Boolean);
+  const areAllSelectedCompleted = React.useMemo(
+    () =>
+      hasAnySelectedTasksInColumn &&
+      selectedTaskIdentifiersInColumn.every((id) => board.tasks[id]?.isCompleted === true),
+    [board.tasks, hasAnySelectedTasksInColumn, selectedTaskIdentifiersInColumn],
+  );
 
-    const byStatus =
-      currentFilter === 'active'
-        ? list.filter((t) => !t.isCompleted)
-        : currentFilter === 'completed'
-          ? list.filter((t) => t.isCompleted)
-          : list;
+  const bulkToggleButtonLabel = areAllSelectedCompleted
+    ? 'Uncomplete selected'
+    : 'Complete selected';
 
-    const q = currentSearchQuery.trim().toLowerCase();
-    return q ? byStatus.filter((t) => t.title.toLowerCase().includes(q)) : byStatus;
+  const handleBulkToggleComplete = React.useCallback(() => {
+    if (!hasAnySelectedTasksInColumn) return;
+    bulkComplete(selectedTaskIdentifiersInColumn, !areAllSelectedCompleted);
+    selectAllInColumn(columnId, false);
   }, [
-    columnTaskIdentifiersFromStore,
-    tasksByIdentifierFromStore,
-    currentFilter,
-    currentSearchQuery,
+    hasAnySelectedTasksInColumn,
+    bulkComplete,
+    selectedTaskIdentifiersInColumn,
+    areAllSelectedCompleted,
+    selectAllInColumn,
+    columnId,
   ]);
+
+  const filteredTasksForColumn = React.useMemo(
+    () => getFilteredTasks(columnId),
+    [getFilteredTasks, columnId, currentFilter, currentSearchQuery, tasksByIdentifierFromStore],
+  );
 
   React.useEffect(() => {
     const element = columnElementReference.current;
@@ -195,10 +202,7 @@ export const Column: React.FC<ColumnProps> = ({ columnId, index }) => {
   const toggleSelectAllTasksInColumn = (checked: boolean) => {
     selectAllInColumn(columnId, checked);
   };
-  const completeSelectedTasksInColumn = () => {
-    if (!hasAnySelectedTasksInColumn) return;
-    bulkComplete(selectedTaskIdentifiersInColumn, true);
-  };
+
   const deleteSelectedTasksInColumn = () => {
     if (!hasAnySelectedTasksInColumn) return;
     openModal({
@@ -222,11 +226,7 @@ export const Column: React.FC<ColumnProps> = ({ columnId, index }) => {
   if (!columnFromStore) return null;
 
   return (
-    <ColumnWrapper
-      ref={columnElementReference}
-      $isOverColumn={isOverColumnDrag}
-      {...longPressHandlers}
-    >
+    <ColumnWrapper ref={columnElementReference} $isOverColumn={isOverColumnDrag}>
       <ColumnHeader>
         <ColumnTitle>{columnFromStore.title}</ColumnTitle>
 
@@ -269,10 +269,10 @@ export const Column: React.FC<ColumnProps> = ({ columnId, index }) => {
           <ColumnAllTasksActionsButtons>
             <Button
               type="button"
-              onClick={completeSelectedTasksInColumn}
+              onClick={handleBulkToggleComplete}
               disabled={!hasAnySelectedTasksInColumn}
             >
-              Complete selected
+              {bulkToggleButtonLabel}
             </Button>
             <Button
               type="button"

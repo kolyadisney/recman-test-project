@@ -72,7 +72,6 @@ src/
       textarea/
   hooks
     useBodyScrollLock
-    useLongPress
   store/
     useBoardStore.ts
     useModalStore.ts

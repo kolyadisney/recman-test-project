@@ -8,6 +8,7 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
+      <title>Kanban Test Board</title>
       <div style={{ background: theme.colors.background, minHeight: '100vh' }}>
         <Header isDark={isDark} onToggleTheme={toggle} />
         <Board />

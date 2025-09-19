@@ -29,10 +29,7 @@ export const TaskContainerStyled = styled.div<{
     $isOverTarget ? (theme as AppTheme).shadow.sm : 'none'};
   transform: ${({ $dragging, $isOverTarget }) =>
     $dragging ? 'rotate(1deg) scale(1.02)' : $isOverTarget ? 'translateY(-1px)' : 'none'};
-  transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease,
-    transform 120ms ease;
+  transition: all 0.3s ease;
 
   @media screen and (max-width: 560px) {
     flex-direction: column;
